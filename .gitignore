@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+playwright/
+chroma_db/
+logs/
+*.pyc
+.env

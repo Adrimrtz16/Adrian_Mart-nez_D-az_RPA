@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de Productos</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 40px 20px; }
+        .container { display: flex; gap: 24px; max-width: 1100px; width: 100%; }
+        .left-col { flex: 1; display: flex; flex-direction: column; gap: 16px; min-width: 480px; }
+        .card { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); padding: 32px; }
+        .list-card { padding: 24px 28px; }
+        .recorder-card { width: 260px; align-self: flex-start; }
+        h1 { font-size: 1.5rem; color: #1a1a2e; margin-bottom: 24px; }
+        h2 { font-size: 1.1rem; color: #1a1a2e; margin-bottom: 16px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; color: #333; font-size: .9rem; }
+        input, select { width: 100%; padding: 10px 14px; border: 1px solid #d0d5dd; border-radius: 8px; font-size: .95rem; margin-bottom: 18px; transition: border .2s; background: #fff; }
+        input:focus, select:focus { outline: none; border-color: #4a6cf7; box-shadow: 0 0 0 3px rgba(74,108,247,.15); }
+        .btn { display: inline-block; padding: 12px 28px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background .2s; }
+        .btn-primary { background: #4a6cf7; color: #fff; width: 100%; }
+        .btn-primary:hover { background: #3b5de7; }
+        .btn-sm { padding: 8px 16px; font-size: .85rem; width: 100%; margin-bottom: 8px; }
+        .btn-tiny { padding: 5px 12px; font-size: .75rem; }
+        .btn-start { background: #22c55e; color: #fff; }
+        .btn-start:hover { background: #16a34a; }
+        .btn-stop { background: #ef4444; color: #fff; }
+        .btn-stop:hover { background: #dc2626; }
+        .btn-download { background: #3b82f6; color: #fff; }
+        .btn-download:hover { background: #2563eb; }
+        .btn-disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; }
+        .btn-clear { background: #94a3b8; color: #fff; }
+        .btn-clear:hover { background: #64748b; }
+        #toast { position: fixed; top: 24px; right: 24px; background: #22c55e; color: #fff; padding: 14px 28px; border-radius: 8px; font-weight: 600; display: none; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+        #toast.show { display: block; animation: slideIn .3s ease; }
+        @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .rec-indicator { display: none; align-items: center; gap: 8px; margin-bottom: 12px; font-size: .85rem; color: #ef4444; font-weight: 600; }
+        .rec-indicator.active { display: flex; }
+        .rec-dot { width: 10px; height: 10px; background: #ef4444; border-radius: 50%; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: .3; } }
+        .step-count { font-size: .8rem; color: #64748b; margin-top: 4px; }
+        .recorder-card label { font-size: .8rem; margin-top: 0; margin-bottom: 4px; }
+        .recorder-card select { margin-bottom: 14px; padding: 8px 10px; font-size: .85rem; }
+        .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        table#product_list { width: 100%; border-collapse: collapse; font-size: .85rem; }
+        table#product_list th, table#product_list td { padding: 8px 6px; text-align: left; border-bottom: 1px solid #eef0f3; vertical-align: middle; }
+        table#product_list th { font-weight: 600; color: #64748b; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; }
+        .empty-msg { color: #94a3b8; font-size: .85rem; padding: 16px 0; text-align: center; }
+        .stock-edit { width: 80px; padding: 6px 8px; margin: 0; font-size: .85rem; }
+        .btn-actualizar, .btn-eliminar { padding: 5px 10px; margin: 2px; border: none; border-radius: 6px; font-size: .75rem; font-weight: 600; cursor: pointer; color: #fff; }
+        .btn-actualizar { background: #f59e0b; }
+        .btn-actualizar:hover { background: #d97706; }
+        .btn-eliminar { background: #ef4444; }
+        .btn-eliminar:hover { background: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-col">
+            <div class="card form-card">
+                <h1>Alta de Producto</h1>
+                <form id="product_form" autocomplete="off">
+                    <label for="nombre">Nombre del producto</label>
+                    <input type="text" id="nombre" name="nombre" placeholder="Ej: Camiseta Negra Roma" required>
+
+                    <label for="precio">Precio (EUR)</label>
+                    <input type="number" id="precio" name="precio" step="0.01" min="0" placeholder="Ej: 19.99" required>
+
+                    <label for="stock">Stock (unidades)</label>
+                    <input type="number" id="stock" name="stock" step="1" min="0" placeholder="Ej: 25" required>
+
+                    <label for="categoria">Categoria</label>
+                    <select id="categoria" name="categoria" required>
+                        <option value="">-- Seleccionar --</option>
+                        <option value="camisetas">Camisetas</option>
+                        <option value="sudaderas">Sudaderas</option>
+                        <option value="pantalones">Pantalones</option>
+                        <option value="accesorios">Accesorios</option>
+                    </select>
+
+                    <button type="submit" id="btn_guardar" class="btn btn-primary">Guardar</button>
+                </form>
+            </div>
+
+            <div class="card list-card">
+                <div class="list-header">
+                    <h2>Productos guardados</h2>
+                    <button id="btn_clear_all" type="button" class="btn btn-tiny btn-clear" data-no-record>Limpiar todo</button>
+                </div>
+                <table id="product_list">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Categoria</th>
+                            <th>Stock nuevo</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="product_tbody"></tbody>
+                </table>
+                <p id="empty_msg" class="empty-msg">No hay productos. Da de alta uno con el formulario.</p>
+            </div>
+        </div>
+
+        <div class="card recorder-card">
+            <h2>Recorder</h2>
+            <label for="rec_workflow_type">Tipo de workflow</label>
+            <select id="rec_workflow_type">
+                <option value="alta">Alta de producto</option>
+                <option value="baja">Baja de producto</option>
+                <option value="actualizar">Actualizar stock</option>
+            </select>
+            <div id="rec_indicator" class="rec-indicator">
+                <span class="rec-dot"></span> Grabando...
+            </div>
+            <button id="btn_start" class="btn btn-sm btn-start" onclick="recorder.start()">&#9654; Start</button>
+            <button id="btn_stop" class="btn btn-sm btn-stop btn-disabled" onclick="recorder.stop()" disabled>&#9632; Stop</button>
+            <button id="btn_download" class="btn btn-sm btn-download btn-disabled" onclick="recorder.download()" disabled>&#11015; Download JSON</button>
+            <p id="step_count" class="step-count"></p>
+        </div>
+    </div>
+
+    <div id="toast">Listo</div>
+
+    <script>
+        // ────────────────────────────────────────────────────────
+        //  Almacenamiento local de productos (simula la "BBDD")
+        // ────────────────────────────────────────────────────────
+        const STORAGE_KEY = 'rpa_products';
+
+        function loadProducts() {
+            const defaultProducts = [
+                {
+                    nombre: "camiseta negra",
+                    precio: 12.99,
+                    stock: 23,
+                    categoria: "camisetas"
+                }
+            ];
+
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultProducts;
+            } catch (e) {
+                return defaultProducts;
+            }
+        }
+        function saveProducts(products) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+        }
+
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[c]));
+        }
+
+        function showToast(text) {
+            const toast = document.getElementById('toast');
+            toast.textContent = text;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function renderProducts() {
+            const products = loadProducts();
+            const tbody = document.getElementById('product_tbody');
+            const empty = document.getElementById('empty_msg');
+            const table = document.getElementById('product_list');
+            tbody.innerHTML = '';
+
+            if (products.length === 0) {
+                empty.style.display = 'block';
+                table.style.display = 'none';
+                return;
+            }
+            empty.style.display = 'none';
+            table.style.display = 'table';
+
+            for (const p of products) {
+                const tr = document.createElement('tr');
+                tr.className = 'product-row';
+                tr.dataset.nombre = p.nombre;
+                tr.innerHTML = `
+                    <td>${escapeHtml(p.nombre)}</td>
+                    <td>${p.precio}</td>
+                    <td class="stock-cell">${p.stock}</td>
+                    <td>${escapeHtml(p.categoria)}</td>
+                    <td><input class="stock-edit" type="number" min="0" step="1" placeholder="..."></td>
+                    <td>
+                        <button class="btn-actualizar" type="button">Actualizar</button>
+                        <button class="btn-eliminar" type="button">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        // ────────────────────────────────────────────────────────
+        //  Alta: submit del formulario
+        // ────────────────────────────────────────────────────────
+        document.getElementById('product_form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = e.target;
+            if (!form.checkValidity()) return;
+
+            const product = {
+                nombre: form.nombre.value.trim(),
+                precio: parseFloat(form.precio.value),
+                stock: parseInt(form.stock.value, 10),
+                categoria: form.categoria.value
+            };
+
+            const products = loadProducts();
+            const idx = products.findIndex(p => p.nombre === product.nombre);
+            if (idx >= 0) products[idx] = product; else products.push(product);
+            saveProducts(products);
+            renderProducts();
+
+            // Mantenemos "Guardado" (con G mayuscula) para que el wait_for_text
+            // del workflow de alta existente siga funcionando.
+            showToast('Producto Guardado correctamente');
+            form.reset();
+        });
+
+        // ────────────────────────────────────────────────────────
+        //  Baja y actualizacion: delegacion sobre el listado
+        // ────────────────────────────────────────────────────────
+        document.getElementById('product_tbody').addEventListener('click', function(e) {
+            const row = e.target.closest('.product-row');
+            if (!row) return;
+            const nombre = row.dataset.nombre;
+
+            if (e.target.classList.contains('btn-eliminar')) {
+                let products = loadProducts();
+                products = products.filter(p => p.nombre !== nombre);
+                saveProducts(products);
+                renderProducts();
+                showToast('Producto Eliminado correctamente');
+                return;
+            }
+
+            if (e.target.classList.contains('btn-actualizar')) {
+                const input = row.querySelector('.stock-edit');
+                const newStock = parseInt(input.value, 10);
+                if (Number.isNaN(newStock) || newStock < 0) {
+                    showToast('Introduce un stock valido');
+                    return;
+                }
+                const products = loadProducts();
+                const idx = products.findIndex(p => p.nombre === nombre);
+                if (idx >= 0) {
+                    products[idx].stock = newStock;
+                    saveProducts(products);
+                    renderProducts();
+                    showToast('Stock Actualizado correctamente');
+                }
+            }
+        });
+
+        document.getElementById('btn_clear_all').addEventListener('click', function() {
+            saveProducts([]);
+            renderProducts();
+            showToast('Listado vaciado');
+        });
+
+        // Render inicial al cargar la pagina
+        renderProducts();
+
+        // ────────────────────────────────────────────────────────
+        //  Recorder: graba 3 tipos de workflow distintos
+        // ────────────────────────────────────────────────────────
+        const WORKFLOW_TEMPLATES = {
+            alta: {
+                id: 'alta_producto_v1',
+                titulo: 'Alta de Producto',
+                descripcion: 'Procedimiento para dar de alta un nuevo producto en el formulario web. Rellena nombre, precio, stock y categoria y pulsa Guardar.',
+                tags: ['alta', 'producto', 'formulario', 'inventario', 'crear', 'anadir', 'registrar'],
+                param_schema: {
+                    nombre:    { type: 'string',  description: 'Nombre del producto', required: true },
+                    precio:    { type: 'float',   description: 'Precio en euros', required: true },
+                    stock:     { type: 'integer', description: 'Unidades en stock', required: true },
+                    categoria: { type: 'enum', values: ['camisetas','sudaderas','pantalones','accesorios'],
+                                 description: 'Categoria del producto', required: true }
+                },
+                toast_contains: 'Guardado'
+            },
+            baja: {
+                id: 'baja_producto_v1',
+                titulo: 'Baja de Producto',
+                descripcion: 'Procedimiento para eliminar un producto existente del listado. Identifica el producto por su nombre y pulsa el boton Eliminar correspondiente.',
+                tags: ['baja', 'eliminar', 'borrar', 'producto', 'quitar', 'remover'],
+                param_schema: {
+                    nombre: { type: 'string', description: 'Nombre del producto a eliminar', required: true }
+                },
+                toast_contains: 'Eliminado'
+            },
+            actualizar: {
+                id: 'actualizar_stock_v1',
+                titulo: 'Actualizacion de Stock',
+                descripcion: 'Procedimiento para modificar el stock de un producto existente. Identifica el producto por su nombre y escribe el nuevo valor de stock.',
+                tags: ['actualizar', 'modificar', 'stock', 'cambiar', 'producto'],
+                param_schema: {
+                    nombre:       { type: 'string',  description: 'Nombre del producto a modificar', required: true },
+                    nuevo_stock:  { type: 'integer', description: 'Nuevo valor de stock', required: true }
+                },
+                toast_contains: 'Actualizado'
+            }
+        };
+
+        const recorder = (() => {
+            let recording = false;
+            let steps = [];
+
+            // Mapeo de campos del formulario de alta a sus placeholders.
+            const FORM_FIELD_PLACEHOLDERS = {
+                nombre: '{{nombre}}',
+                precio: '{{precio}}',
+                stock: '{{stock}}',
+                categoria: '{{categoria}}'
+            };
+
+            // Si el elemento esta dentro de una fila de producto, generamos un
+            // selector relativo usando {{nombre}} en data-nombre. Asi el workflow
+            // ejecuta sobre la fila correcta sin importar su id concreto.
+            function getSelector(el) {
+                const row = el.closest('.product-row');
+                if (row) {
+                    const base = '.product-row[data-nombre="{{nombre}}"]';
+                    if (el.classList.contains('btn-eliminar'))   return base + ' .btn-eliminar';
+                    if (el.classList.contains('btn-actualizar')) return base + ' .btn-actualizar';
+                    if (el.classList.contains('stock-edit'))     return base + ' .stock-edit';
+                    return base + ' ' + el.tagName.toLowerCase();
+                }
+                if (el.id)   return '#' + el.id;
+                if (el.name) return '[name="' + el.name + '"]';
+                return el.tagName.toLowerCase();
+            }
+
+            // Devuelve el placeholder adecuado segun el campo.
+            function getPlaceholder(el) {
+                if (el.closest('.product-row') && el.classList.contains('stock-edit')) {
+                    return '{{nuevo_stock}}';
+                }
+                return FORM_FIELD_PLACEHOLDERS[el.name || el.id] || el.value;
+            }
+
+            // Ignoramos eventos sobre la propia UI del recorder y elementos
+            // marcados con data-no-record (como "Limpiar todo").
+            function isIgnored(el) {
+                return !!el.closest('[data-no-record], .recorder-card');
+            }
+
+            function handleClick(e) {
+                if (!recording) return;
+                const el = e.target;
+                if (isIgnored(el)) return;
+                if (['INPUT', 'SELECT', 'TEXTAREA'].includes(el.tagName)) return;
+                steps.push({ type: 'click', target: { by: 'css', value: getSelector(el) } });
+                updateCount();
+            }
+
+            function handleInput(e) {
+                if (!recording) return;
+                const el = e.target;
+                if (isIgnored(el)) return;
+                if (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') return;
+                const sel = getSelector(el);
+                const placeholder = getPlaceholder(el);
+                steps = steps.filter(s => !(s.type === 'type' && s.target.value === sel));
+                steps.push({ type: 'type', target: { by: 'css', value: sel }, value: placeholder });
+                updateCount();
+            }
+
+            function handleChange(e) {
+                if (!recording) return;
+                const el = e.target;
+                if (isIgnored(el)) return;
+                if (el.tagName !== 'SELECT') return;
+                const sel = getSelector(el);
+                const placeholder = getPlaceholder(el);
+                steps.push({ type: 'select', target: { by: 'css', value: sel }, value: placeholder });
+                updateCount();
+            }
+
+            function updateCount() {
+                document.getElementById('step_count').textContent = steps.length + ' pasos grabados';
+            }
+
+            return {
+                start() {
+                    steps = [];
+                    recording = true;
+                    document.addEventListener('click', handleClick, true);
+                    document.addEventListener('input', handleInput, true);
+                    document.addEventListener('change', handleChange, true);
+                    document.getElementById('rec_indicator').classList.add('active');
+                    document.getElementById('btn_start').disabled = true;
+                    document.getElementById('btn_start').classList.add('btn-disabled');
+                    document.getElementById('btn_stop').disabled = false;
+                    document.getElementById('btn_stop').classList.remove('btn-disabled');
+                    document.getElementById('btn_download').disabled = true;
+                    document.getElementById('btn_download').classList.add('btn-disabled');
+                    document.getElementById('rec_workflow_type').disabled = true;
+                    updateCount();
+                },
+                stop() {
+                    recording = false;
+                    document.removeEventListener('click', handleClick, true);
+                    document.removeEventListener('input', handleInput, true);
+                    document.removeEventListener('change', handleChange, true);
+                    document.getElementById('rec_indicator').classList.remove('active');
+                    document.getElementById('btn_stop').disabled = true;
+                    document.getElementById('btn_stop').classList.add('btn-disabled');
+                    document.getElementById('btn_download').disabled = false;
+                    document.getElementById('btn_download').classList.remove('btn-disabled');
+                    document.getElementById('btn_start').disabled = false;
+                    document.getElementById('btn_start').classList.remove('btn-disabled');
+                    document.getElementById('rec_workflow_type').disabled = false;
+                    updateCount();
+                },
+                download() {
+                    const type = document.getElementById('rec_workflow_type').value;
+                    const tpl = WORKFLOW_TEMPLATES[type];
+                    if (!tpl) return;
+
+                    // Construimos los steps finales: pequeno wait inicial + lo grabado
+                    // + wait_for_text adaptado al toast esperado por este workflow.
+                    const finalSteps = [
+                        { type: 'wait', ms: 500 },
+                        ...steps,
+                        { type: 'wait_for_text', target: { by: 'css', value: '#toast' }, contains: tpl.toast_contains }
+                    ];
+
+                    const workflow = {
+                        id: tpl.id,
+                        titulo: tpl.titulo,
+                        descripcion: tpl.descripcion,
+                        app: 'formulario_productos',
+                        url: '{{FORM_URL}}',
+                        tags: tpl.tags,
+                        param_schema: tpl.param_schema,
+                        steps: finalSteps
+                    };
+
+                    const blob = new Blob([JSON.stringify(workflow, null, 2)], { type: 'application/json' });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = tpl.id + '.workflow.json';
+                    a.click();
+                }
+            };
+        })();
+    </script>
+</body>
+</html>

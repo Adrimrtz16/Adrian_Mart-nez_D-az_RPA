@@ -1,0 +1,97 @@
+{
+  "id": "alta_producto_v1",
+  "titulo": "Alta de Producto",
+  "descripcion": "Procedimiento para dar de alta un nuevo producto en el formulario web. Rellena nombre, precio, stock y categoria y pulsa Guardar.",
+  "app": "formulario_productos",
+"url": "http://localhost:8080",
+  "tags": [
+    "alta",
+    "producto",
+    "formulario",
+    "inventario",
+    "crear",
+    "anadir",
+    "registrar"
+  ],
+  "param_schema": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del producto",
+      "required": true
+    },
+    "precio": {
+      "type": "float",
+      "description": "Precio en euros",
+      "required": true
+    },
+    "stock": {
+      "type": "integer",
+      "description": "Unidades en stock",
+      "required": true
+    },
+    "categoria": {
+      "type": "enum",
+      "values": [
+        "camisetas",
+        "sudaderas",
+        "pantalones",
+        "accesorios"
+      ],
+      "description": "Categoria del producto",
+      "required": true
+    }
+  },
+  "steps": [
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "type",
+      "target": {
+        "by": "css",
+        "value": "#nombre"
+      },
+      "value": "{{nombre}}"
+    },
+    {
+      "type": "type",
+      "target": {
+        "by": "css",
+        "value": "#precio"
+      },
+      "value": "{{precio}}"
+    },
+    {
+      "type": "type",
+      "target": {
+        "by": "css",
+        "value": "#stock"
+      },
+      "value": "{{stock}}"
+    },
+    {
+      "type": "select",
+      "target": {
+        "by": "css",
+        "value": "#categoria"
+      },
+      "value": "{{categoria}}"
+    },
+    {
+      "type": "click",
+      "target": {
+        "by": "css",
+        "value": "#btn_guardar"
+      }
+    },
+    {
+      "type": "wait_for_text",
+      "target": {
+        "by": "css",
+        "value": "#toast"
+      },
+      "contains": "Guardado"
+    }
+  ]
+}

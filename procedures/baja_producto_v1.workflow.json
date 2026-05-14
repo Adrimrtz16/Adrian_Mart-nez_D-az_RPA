@@ -1,0 +1,43 @@
+{
+  "id": "baja_producto_v1",
+  "titulo": "Baja de Producto",
+  "descripcion": "Procedimiento para eliminar un producto existente del listado. Identifica el producto por su nombre y pulsa el boton Eliminar correspondiente.",
+  "app": "formulario_productos",
+  "url": "http://localhost:8080",
+  "tags": [
+    "baja",
+    "eliminar",
+    "borrar",
+    "producto",
+    "quitar",
+    "remover"
+  ],
+  "param_schema": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del producto a eliminar",
+      "required": true
+    }
+  },
+  "steps": [
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "click",
+      "target": {
+        "by": "css",
+        "value": ".product-row[data-nombre=\"{{nombre}}\"] .btn-eliminar"
+      }
+    },
+    {
+      "type": "wait_for_text",
+      "target": {
+        "by": "css",
+        "value": "#toast"
+      },
+      "contains": "Eliminado"
+    }
+  ]
+}

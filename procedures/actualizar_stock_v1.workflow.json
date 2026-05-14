@@ -1,0 +1,55 @@
+{
+  "id": "actualizar_stock_v1",
+  "titulo": "Actualizacion de Stock",
+  "descripcion": "Procedimiento para modificar el stock de un producto existente. Identifica el producto por su nombre y escribe el nuevo valor de stock.",
+  "app": "formulario_productos",
+  "url": "http://localhost:8080",
+  "tags": [
+    "actualizar",
+    "modificar",
+    "stock",
+    "cambiar",
+    "producto"
+  ],
+  "param_schema": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del producto a modificar",
+      "required": true
+    },
+    "nuevo_stock": {
+      "type": "integer",
+      "description": "Nuevo valor de stock",
+      "required": true
+    }
+  },
+  "steps": [
+    {
+      "type": "wait",
+      "ms": 500
+    },
+    {
+      "type": "type",
+      "target": {
+        "by": "css",
+        "value": ".product-row[data-nombre=\"{{nombre}}\"] .stock-edit"
+      },
+      "value": "{{nuevo_stock}}"
+    },
+    {
+      "type": "click",
+      "target": {
+        "by": "css",
+        "value": ".product-row[data-nombre=\"{{nombre}}\"] .btn-actualizar"
+      }
+    },
+    {
+      "type": "wait_for_text",
+      "target": {
+        "by": "css",
+        "value": "#toast"
+      },
+      "contains": "Actualizado"
+    }
+  ]
+}
