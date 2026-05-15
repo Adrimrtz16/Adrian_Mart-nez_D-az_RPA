@@ -614,39 +614,4 @@ ADRIAN_MARTINEZ_DIAZ_RPA/
  
 ---
  
-## 🎓 Aprendizaje: De Cero a Hero
- 
-### Nivel 1: Usar el sistema como-está
- 
-1. Ejecuta los 3 comandos
-2. Prueba casos en CLI/API
-3. Observa trazas en terminal
-### Nivel 2: Entender cómo funciona
- 
-1. Lee `README.md` (conceptos)
-2. Lee `ARCHITECTURE.md` (diagramas detallados)
-3. Inspecciona código en `agent/agent.py`
-### Nivel 3: Customizar
- 
-1. Edita parámetros en `.env`
-2. Ajusta timeouts en `runner.py`
-3. Añade nuevos procedimientos JSON en `procedures/`
-### Nivel 4: Extender
- 
-1. Crea nuevos Tools en `tools.py`
-2. Modifica System Prompt en `agent.py`
-3. Integra nuevas APIs / fuentes de datos
----
- 
-## 🚨 Errores Comunes
- 
-| Síntoma | Causa | Fix |
-|---------|-------|-----|
-| Agent no responde | LLM timeout | Verificar OPENAI_API_KEY, reintentar |
-| Formulario no carga | server.py no corre | Terminal 2: `cd web_form && python server.py` |
-| ChromaDB error | No indexado | Terminal 1: `python index_procedures.py` |
-| Toast no se lee | Selector incorrecto | Inspeccionar HTML, ajustar en JSON |
-| Playwright error | Navegador no disponible | `playwright install chromium` |
- 
----
  
