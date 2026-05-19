@@ -40,6 +40,7 @@ class WorkflowRunner:
                         f"[Runner] Step {i}: {step['type']}"
                     )
                     self._execute_step(page, step)
+                    time.sleep(1.5)
 
                 # Intentar leer toast final
                 try:

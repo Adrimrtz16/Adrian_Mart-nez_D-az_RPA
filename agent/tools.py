@@ -102,13 +102,6 @@ def extract_parameters(user_request: str, param_schema: dict) -> dict:
     a partir de una petición en lenguaje natural.
     """
 
-    llm = ChatOpenAI(
-        model=os.getenv("MODEL_NAME"),
-        base_url=os.getenv("OPENAI_BASE_URL"),
-        api_key=os.getenv("OPENAI_API_KEY"),
-        temperature=0
-    )
-
     prompt = f"""
 Extrae estos parámetros desde la petición del usuario.
 
